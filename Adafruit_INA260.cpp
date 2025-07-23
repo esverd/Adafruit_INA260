@@ -326,3 +326,34 @@ bool Adafruit_INA260::alertFunctionFlag(void) {
       Adafruit_I2CRegisterBits(MaskEnable, 1, 4);
   return alert_function_flag.read();
 }
+
+
+bool Adafruit_INA260::writeConfigRegister(uint16_t value) {
+  uint8_t data[3];
+  data[0] = INA260_REG_CONFIG;
+  data[1] = (uint8_t)(value >> 8);     // MSB
+  data[2] = (uint8_t)(value & 0xFF);   // LSB
+  return _i2c_dev->write(data, 3);
+}
+
+uint16_t Adafruit_INA260::readConfigRegister() {
+  _i2c_dev->write_then_read(INA260_REG_CONFIG, 1, buffer, 2);
+  return ((uint16_t)buffer[0] << 8) | buffer[1];
+}
+
+/**************************************************************************/
+/*!
+    @brief Sets the averaging mode of the INA260 (1x to 1024x)
+    @param avg_mode Value from 0–7:
+           0: 1 sample, 1: 4 samples, 2: 16 samples, 3: 64 samples,
+           4: 128 samples, 5: 256 samples, 6: 512 samples, 7: 1024 samples
+    @returns true if write was successful
+    @note Added by Eirik Sverd to enable noise filtering and stability tuning
+*/
+/**************************************************************************/
+bool Adafruit_INA260::setAveragingMode(uint8_t avg_mode) {
+  if (avg_mode > 7)
+    return false; // Only 3 bits wide
+  return averaging_config.write(avg_mode);
+}
+
