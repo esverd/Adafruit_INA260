@@ -328,19 +328,6 @@ bool Adafruit_INA260::alertFunctionFlag(void) {
 }
 
 
-bool Adafruit_INA260::writeConfigRegister(uint16_t value) {
-  uint8_t data[3];
-  data[0] = INA260_REG_CONFIG;
-  data[1] = (uint8_t)(value >> 8);     // MSB
-  data[2] = (uint8_t)(value & 0xFF);   // LSB
-  return _i2c_dev->write(data, 3);
-}
-
-uint16_t Adafruit_INA260::readConfigRegister() {
-  _i2c_dev->write_then_read(INA260_REG_CONFIG, 1, buffer, 2);
-  return ((uint16_t)buffer[0] << 8) | buffer[1];
-}
-
 /**************************************************************************/
 /*!
     @brief Sets the averaging mode of the INA260 (1x to 1024x)
@@ -353,7 +340,41 @@ uint16_t Adafruit_INA260::readConfigRegister() {
 /**************************************************************************/
 bool Adafruit_INA260::setAveragingMode(uint8_t avg_mode) {
   if (avg_mode > 7)
-    return false; // Only 3 bits wide
+    return false;
+
+  Adafruit_I2CRegisterBits averaging_config =
+      Adafruit_I2CRegisterBits(
+          new Adafruit_I2CRegister(i2c_dev, INA260_REG_CONFIG, 2),
+          3, 9); // 3 bits at bit 9
+          
   return averaging_config.write(avg_mode);
 }
 
+/**************************************************************************/
+/*!
+    @brief Writes a full 16-bit configuration value to the INA260 CONFIG register
+    @param value 16-bit configuration word
+    @return true if write was successful
+    @note Added by Eirik Sverd to support manual config control
+*/
+/**************************************************************************/
+bool Adafruit_INA260::writeConfigRegister(uint16_t value) {
+  uint8_t data[3];
+  data[0] = INA260_REG_CONFIG;
+  data[1] = (uint8_t)(value >> 8);     // MSB
+  data[2] = (uint8_t)(value & 0xFF);   // LSB
+  return i2c_dev->write(data, 3);
+}
+
+/**************************************************************************/
+/*!
+    @brief Reads the current 16-bit configuration value from the INA260 CONFIG register
+    @return 16-bit configuration register value
+    @note Added by Eirik Sverd for debugging and verification
+*/
+/**************************************************************************/
+uint16_t Adafruit_INA260::readConfigRegister() {
+  uint8_t buffer[2];
+  i2c_dev->write_then_read(INA260_REG_CONFIG, 1, buffer, 2);
+  return ((uint16_t)buffer[0] << 8) | buffer[1];
+}
