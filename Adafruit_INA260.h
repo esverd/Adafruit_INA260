@@ -161,10 +161,13 @@ public:
   bool writeConfigRegister(uint16_t value); //added by esverd to enable internal sensor sample averaging
   uint16_t readConfigRegister();            //added by esverd to enable internal sensor sample averaging
   bool setAveragingMode(uint8_t avg_mode);  //added by esverd to enable internal sensor sample averaging
+  Adafruit_I2CRegisterBits *_averaging_config;  //added by esverd to enable internal sensor sample averaging
 
 
 private:
   Adafruit_I2CDevice *i2c_dev;
+  Adafruit_I2CRegisterBits *_averaging_config;  //added by esverd to enable internal sensor sample averaging
+
 };
 
 #endif
