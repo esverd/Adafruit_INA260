@@ -53,6 +53,7 @@ bool Adafruit_INA260::begin(uint8_t i2c_address, TwoWire *theWire) {
   i2c_dev = new Adafruit_I2CDevice(i2c_address, theWire);
 
   if (!i2c_dev->begin()) {
+    _averaging_config = new Adafruit_I2CRegisterBits(new Adafruit_I2CRegister(i2c_dev, INA260_REG_CONFIG, 2), 3, 9); //added by esverd to enable internal sensor sample averaging
     return false;
   }
 
@@ -339,16 +340,10 @@ bool Adafruit_INA260::alertFunctionFlag(void) {
 */
 /**************************************************************************/
 bool Adafruit_INA260::setAveragingMode(uint8_t avg_mode) {
-  if (avg_mode > 7)
-    return false;
-
-  Adafruit_I2CRegisterBits averaging_config =
-      Adafruit_I2CRegisterBits(
-          new Adafruit_I2CRegister(i2c_dev, INA260_REG_CONFIG, 2),
-          3, 9); // 3 bits at bit 9
-          
-  return averaging_config.write(avg_mode);
+  if (avg_mode > 7) return false;
+  return _averaging_config->write(avg_mode);
 }
+
 
 /**************************************************************************/
 /*!
